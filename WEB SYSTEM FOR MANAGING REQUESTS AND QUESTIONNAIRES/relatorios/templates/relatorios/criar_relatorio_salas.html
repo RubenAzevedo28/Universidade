@@ -1,0 +1,62 @@
+{% extends 'app.html' %}
+{% block title %}Relatório de Salas{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 20px;">
+    <form method="GET" action="" style="text-align: center; margin-bottom: 20px;">
+        <div style="display: inline-block; margin-right: 20px;">
+            <label for="data_inicio">Data de Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" required>
+        </div>
+        <div style="display: inline-block; margin-right: 20px;">
+            <label for="data_fim">Data de Fim:</label>
+            <input type="date" id="data_fim" name="data_fim" required>
+        </div>
+        <button type="submit" style="padding: 10px 20px; font-size: 16px;">Filtrar</button>
+    </form>
+
+    <h2 style="margin-bottom: 20px; text-align: center;"><b>Relatório de salas</b></h2>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button onclick="exportarDados()" style="margin-right: 10px; padding: 10px 20px; font-size: 16px;"><i class="fas fa-file-export"></i> Exportar</button>
+        <button onclick="imprimirRelatorio()" style="padding: 10px 20px; font-size: 16px;"><i class="fas fa-print"></i> Imprimir</button>
+    </div>
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+            <tr>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Sala/Tipo de Sala</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Quantidade de subpedidos associados</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Quantidade de pedidos associados</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Pedidos pendentes</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Pedidos em análise</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Pedidos aceites</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Pedidos rejeitados</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in relatorio %}
+            <tr class="{% cycle 'linha-par' 'linha-impar' %}" style="{% cycle 'background-color: #fff;' 'background-color: #f9f9f9;' %}">
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.sala }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.quantidade_de_subpedidos_associados }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.quantidade_de_pedidos_associados }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.pendentes }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.em_analise }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.aceites }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ item.rejeitados }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    function exportarDados() {
+    }
+    function imprimirRelatorio() {
+        window.print();
+    }
+</script>
+{% endblock %}
+

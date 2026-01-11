@@ -1,0 +1,73 @@
+{% extends 'app.html' %}
+{% block title %}Relatório de Docentes{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 20px;">
+    <form method="GET" action="" style="text-align: center; margin-bottom: 20px;">
+        <div style="display: inline-block; margin-right: 20px;">
+            <label for="ativo">Ativo:</label>
+            <select id="ativo" name="ativo" required>
+                <option value="">Selecione uma opção</option>
+                <option value="S">Sim</option>
+                <option value="N">Não</option>
+            </select>
+        </div>
+        <button type="submit" style="padding: 10px 20px; font-size: 16px;"class="button is-link mdi mdi-filter">Filtrar</button>    </form>
+    
+
+    <h2 style="margin-bottom: 20px; text-align: center;"><b>Relatório de Docentes</b></h2>
+
+    <div style="text-align: center; margin-bottom: 20px;">
+        <a href="{% url 'relatorios:exportar-docentes-pdf' %}?ativo={{ request.GET.ativo }}" style="margin-right: 10px; padding: 10px 20px; font-size: 16px;" class="button is-success mdi mdi-file-export">Exportar PDF</a>
+        <a href="{% url 'relatorios:exportar-docentes-csv' %}?ativo={{ request.GET.ativo }}" style="padding: 10px 20px; font-size: 16px;" class="button is-success mdi mdi-file-export">Exportar CSV</a>
+        <button onclick="imprimirRelatorio()" style="padding: 10px 20px; font-size: 16px;" class="button is-danger mdi mdi-printer"> Imprimir</button>
+    </div>
+    
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        <thead>
+            <tr>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Nome</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Email</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Código</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Ativo</th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">Data de Nascimento
+                </th>
+                <th style="padding: 10px; background-color: #f2f2f2; border-bottom: 2px solid #ddd;">NIF</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for docente in docentes %}
+            <tr class="{% cycle 'linha-par' 'linha-impar' %}"style="{% cycle 'background-color: #fff;' 'background-color: #f9f9f9;' %}">
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.nome }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.email }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.codigo }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.ativo }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.data_nascimento|date:"Y-m-d" }}</td>
+                <td style="text-align: center; padding: 10px; border-bottom: 1px solid #ddd;">{{ docente.nif }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="printInstructions"
+    style="display:none; position:fixed; top:10%; left:10%; right:10%; background-color:white; border:1px solid #ddd; padding:20px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index:1000; font-weight: bold;">
+    <p>Como Exportar um Relatório em ficheiro PDF:</p>
+    <ol>
+        <li>Na seguinta janela de impressão, selecione "Guardar como PDF".</li>
+        <li>Confirme as opções de impressão.</li>
+        <li>Clique em "Guardar".</li>
+    </ol>
+    <button onclick="document.getElementById('printInstructions').style.display='none'; window.print();" class="button is-link" style="margin-top: 10px;">Continuar</button>
+</div>
+<script>
+    function exportarDados() {
+        document.getElementById('printInstructions').style.display = 'block';
+    }
+
+    function imprimirRelatorio() {
+        window.print();
+    }
+</script>
+{% endblock %}
