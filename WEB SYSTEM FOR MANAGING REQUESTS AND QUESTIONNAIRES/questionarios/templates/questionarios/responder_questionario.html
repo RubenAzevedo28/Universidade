@@ -1,0 +1,157 @@
+{% extends 'app.html' %}
+
+{% load static %}
+
+{% block title %}Responder Questionário{% endblock title %}
+
+{% block content %}
+<div style="padding: 1rem 2vw 0px;">
+    <hr>
+    <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">
+        Responder Questionário:
+    </h2>
+    <!-- Informações do Questionário -->
+    <div class="columns">
+        <div class="column">
+            <div class="field">
+                <label class="label">Assunto: </label>
+                <div class="control is-clearfix">
+                    {{ questionario.assunto }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="columns">
+        <div class="column">
+            <div class="field">
+                <label class="label">Descrição: </label>
+                <div class="control is-clearfix">
+                    {{ questionario.descricao }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="columns">
+        <div class="column">
+            <div class="field">
+                <label class="label">Data de Criação: </label>
+                <div class="control is-clearfix">
+                    {{ questionario.data_criacao|date:"d/m/Y" }}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if ja_respondeu %}
+    <div class="notification is-danger">
+        Você já respondeu a este questionário.
+    </div>
+    {% endif %}
+
+    <!-- Formulário de Respostas -->
+    <form method="post">
+        {% csrf_token %}
+        <div class="columns">
+            <div class="column is-12">
+                <div class="box">
+                    <h3 class="title is-4">Perguntas:</h3>
+                    {% for tema, perguntas in perguntas_por_tema.items %}
+                    <div class="box">
+                        <h4 class="title is-5">Tema: {{ tema }}</h4>
+                        {% for pergunta in perguntas %}
+                        <div class="field">
+                            <label class="label">{{ forloop.counter }}. {{ pergunta.conteudo }}</label>
+                            <div class="control">
+                                {% if pergunta.tipo_pergunta.descricao == "resposta curta" %}
+                                <input type="text" name="resposta_{{ pergunta.id }}" class="input" placeholder="Digite sua resposta aqui..." {% if ja_respondeu %}disabled{% endif %}>
+                                {% elif pergunta.tipo_pergunta.descricao == "resposta longa" %}
+                                <textarea name="resposta_{{ pergunta.id }}" class="textarea" placeholder="Digite sua resposta detalhada aqui..." {% if ja_respondeu %}disabled{% endif %}></textarea>
+                                {% elif pergunta.tipo_pergunta.descricao == "escolha múltipla" %}
+                                {% for opcao in pergunta.opcoes.all %}
+                                <label class="radio">
+                                    <input type="radio" name="resposta_{{ pergunta.id }}" value="{{ opcao.texto_opcao }}" {% if ja_respondeu %}disabled{% endif %}>
+                                    {{ opcao.texto_opcao }}
+                                </label>
+                                {% endfor %}
+                                {% elif pergunta.tipo_pergunta.descricao == "escalar" %}
+                                <div>
+                                    {{ pergunta.significado_minimo }} ({{ pergunta.valor_minimo }})
+                                    {% for num in pergunta.escala_numeros %}
+                                    <button type="button" class="button is-small is-rounded" onclick="setAnswer('{{ pergunta.id }}', '{{ num }}')" {% if ja_respondeu %}disabled{% endif %}>{{ num }}</button>
+                                    {% endfor %}
+                                    {{ pergunta.significado_maximo }} ({{ pergunta.valor_maximo }})
+                                    <input type="hidden" name="resposta_{{ pergunta.id }}" id="resposta_{{ pergunta.id }}" {% if ja_respondeu %}disabled{% endif %}>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <button type="submit" class="button is-link" {% if ja_respondeu %}disabled{% endif %}>Enviar Respostas</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="margin-top:8%;text-align:center;position:center;">
+    <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%" onclick="history.back();">Voltar</button>
+</div>
+
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const submitButton = document.querySelector("button[type='submit']");
+
+        function validateForm() {
+            let allFilled = true;
+            document.querySelectorAll("input[type='text'], textarea, input[type='radio'], input[type='hidden']").forEach(input => {
+                if (input.type === "radio") {
+                    const name = input.name;
+                    const radioGroupFilled = !!document.querySelector(`input[name="${name}"]:checked`);
+                    if (!radioGroupFilled) {
+                        allFilled = false;
+                    }
+                } else if (input.type === "hidden" && input.value === "") {
+                    allFilled = false;
+                } else if (input.value.trim() === "") {
+                    allFilled = false;
+                }
+            });
+
+            submitButton.disabled = !allFilled; 
+            return allFilled;
+        }
+
+        form.addEventListener("submit", function (event) {
+            const isValid = validateForm();
+            if (!isValid) {
+                event.preventDefault();
+                alert("Por favor, responda todas as perguntas antes de enviar.");
+            }
+        });
+
+        window.setAnswer = function (questionId, value) {
+            const hiddenInput = document.getElementById('resposta_' + questionId);
+            hiddenInput.value = value;
+            document.querySelectorAll(`button[onclick*="setAnswer('${questionId}',"]`).forEach(button => {
+                button.classList.remove('is-primary');
+                if (button.textContent === value) {
+                    button.classList.add('is-primary');
+                }
+            });
+            validateForm(); 
+        };
+        
+        validateForm();
+    });
+</script>
+{% endblock scripts %}

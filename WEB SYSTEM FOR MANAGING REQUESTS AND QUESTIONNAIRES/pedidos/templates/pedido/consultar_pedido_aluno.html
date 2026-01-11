@@ -1,0 +1,154 @@
+{% extends 'app.html' %}
+
+{% load static %}
+
+{% block title %}- Consultar Pedido Aluno{% endblock title %}
+
+
+
+{% block content %}
+        <div style="padding: 1rem 2vw 0px;">
+                <hr>
+                <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">
+                    Consultar de Pedido DE ALUNO:
+                </h2>
+                <div class="columns">
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Assunto: </label>
+                            <div class="control is-clearfix">
+                                {{pedido_aluno.assunto}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Estado: </label>
+                            <div class="control is-clearfix" >
+                                {{pedido_aluno.estado}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="columns">
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Data alvo: </label>
+                            <div class="control is-clearfix">
+                                {{pedido_aluno.data_de_alvo}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Nome de Aluno: </label>
+                            <div class="control is-clearfix">
+                                {{aluno_name}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="columns">
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Informações: </label>
+                            <div class="control is-clearfix">
+                                {{pedido_aluno.informacoes}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="field">
+                            <label class="label">Número de Aluno: </label>
+                            <div class="control is-clearfix">
+                                {{aluno_numero}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            
+                
+                <div class="columns">
+                    <div class="column">
+                      <div class="field">
+                        <label class="label">Comentários: </label>
+                        <div class="control is-clearfix">{{pedido_aluno.comentarios}}</div>
+                      </div>
+                    </div>
+                </div>
+
+
+            <div>&nbsp;</div>
+
+
+            {% if pedido_aluno.identificador_id.id == 2 %}
+            <a  v-show="showFileBox === 2"   class="button is-success" href="{{file_url}}">Descarregar Ficheiro do Pedido *</a>
+            
+            {% else %}
+            <table class="table" style="width: 100%; background-color: rgb(51, 151, 131);">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Tipo</th>
+                    <th>Assunto</th>
+                    <th>Descrição</th>
+                    <th>Ficheiro</th>
+                  </tr>
+                </thead>
+                <tbody style="background-color: #ccc;">
+                    {% for subpedido in pedido_aluno.subpedidos %}
+                    <tr>
+                        <th></th>
+                        <th style="font-weight: normal;">{{ subpedido.tipo }}</th>
+                        <th style="font-weight: normal;">{{ subpedido.assunto }}</th>
+                        <th style="font-weight: normal;">{{ subpedido.descricao }}</th>
+                        {% if subpedido.file_exists %}
+                        <th>
+                                <a v-show="showFileBox === 2" class="button is-success" href="{{ subpedido.file_url }}">Download</a>
+                            </th>
+                            {% else %}
+                                <th style="font-weight: normal;">Sem Ficheiro</th>
+                            {% endif %}
+                    </tr>
+                    {% endfor %}
+                
+                </tbody>
+                
+            </table>
+            {% endif%}
+
+                        </div> 
+
+
+        
+            <div style="margin-top:8%;text-align:center;position:center;">
+                <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%" onclick="history.back();" >Voltar</button>
+                           
+            </div>
+
+            {% if pedido_aluno.identificador_id.id == 2 %}
+            <div > * Terá que ter uma extensão para abrir ficheiros locais</div>
+            {% endif %}
+
+{% endblock content %}
+
+
+{% block scripts %}
+<script>
+  var app = new Vue({
+    delimiters: ["[[", "]]"],
+    el: '#consultar-pedido',
+    data(){
+        return{
+            Teste : ""
+        }
+    },
+    methods: {
+        
+    },
+});
+</script>
+  
+{% endblock scripts %}

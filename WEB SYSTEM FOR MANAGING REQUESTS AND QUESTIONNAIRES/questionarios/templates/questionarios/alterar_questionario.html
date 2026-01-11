@@ -1,0 +1,519 @@
+{% extends 'app.html' %}
+
+{% load static %}
+
+{% block title %}- Alterar Questionário{% endblock title %}
+
+{% block head %}
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+{% endblock %}
+
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div style="padding: 1rem 2vw 0px;">
+        <hr>
+        <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">
+            Alterar Questionário
+        </h2>
+
+        {% if msg %}
+        <div style="margin-left:30%;margin-right:30%; margin-top:0%">
+            <div style="margin-top:2%;text-align: center;position:center;">
+                <article class="message is-danger">
+                    <div class="message-body">
+                        <p style="text-align: center;">
+                            {{erros}}
+                        </p>
+                    </div>
+                </article>
+            </div>
+        </div>
+        {% endif %}
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Assunto: </label>
+                    {{ form.assunto }}
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Descrição: </label>
+                    {{ form.descricao }}
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Ano Letivo: </label>
+                    <div class="control">
+                        {{ form.ano_letivo }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Data de Publicação: </label>
+                    <div class="control is-clearfix">
+                        <input name="data_submissao" type="date" value="{{ questionario.data_submissao|date:'Y-m-d' }}" class="input" oninput="validateDate(this)" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <label class="label" style="margin-top:20px;">Perguntas:</label>
+        <div id="perguntas-container">
+
+        </div>
+
+        <button type="button" id="add-resposta-curta" class="button is-link">Adicionar Resposta Curta</button>
+        <button type="button" id="add-resposta-longa" class="button is-link">Adicionar Resposta Longa</button>
+        <button type="button" id="add-escolha-multipla" class="button is-link">Adicionar Escolha Múltipla</button>
+        <button type="button" id="add-escalar" class="button is-link">Adicionar Escalar</button>
+        <button type="button" id="filtrar-temas" class="button is-info" style="margin-left: auto;">Agrupar por Temas</button>
+
+    </div>
+
+    <div style="margin-top:8%;text-align:center;position:center;">
+        <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%"
+            onclick="history.back();">Voltar</button>
+        <button type="submit" name="action" value="save_production" class="button is-warning is-outlined"
+            style="margin-right:5%">Guardar</button>
+        <button type="submit" name="action" value="save_created" class="button is-success is-outlined">Submeter para
+            Validação</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/template" id="tema-template">
+    <select name="temas[]" class="select" required style="margin-top: 5px;">
+        {% for tema in temas %}
+        <option value="{{ tema.id }}">{{ tema.tema }}</option>
+        {% endfor %}
+    </select>
+</script>
+
+<script>
+    var idToDescMap = {1: "resposta curta", 2: "resposta longa", 3: "escolha múltipla", 4: "escalar"};
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+
+            const themes = JSON.parse('{{ temas_json|safe }}');
+            const perguntasExistentes = JSON.parse('{{ perguntas_json|safe }}');
+
+            console.log("Temas carregados:", themes);
+            console.log("Perguntas carregadas:", perguntasExistentes);
+
+            const dataPublicacaoInput = document.querySelector('input[name="data_submissao"]');
+            console.log('Data de Publicação:', dataPublicacaoInput.value);
+
+            if (!perguntasExistentes || perguntasExistentes.length === 0) {
+                console.warn('Nenhuma pergunta existente para carregar.');
+            } else {
+                perguntasExistentes.forEach((pergunta, index) => {
+                    console.log(`Processando pergunta ${index + 1}`);
+                    addPerguntaExistente(pergunta, index, themes);
+                });
+
+                atualizarNumeracaoPerguntas();
+            }
+
+            document.querySelectorAll('.add-option-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const perguntaContainer = this.closest('.pergunta-completa');
+                    const opcoesContainer = perguntaContainer.querySelector('.opcoes-container');
+                    const perguntaIndex = Array.from(document.querySelectorAll('.pergunta-completa')).indexOf(perguntaContainer);
+                    const numeroOpcoes = opcoesContainer.children.length + 1;
+
+                    const newOpcaoHTML = getNewOpcaoHTML(perguntaIndex, numeroOpcoes);
+                    opcoesContainer.insertAdjacentHTML('beforeend', newOpcaoHTML);
+                    atualizarNumeracaoOpcoes(opcoesContainer, perguntaIndex);
+                });
+            });
+
+
+        } catch (e) {
+            console.error('Erro durante o processamento inicial:', e);
+        }
+    });
+
+
+
+    function createThemeSelect(selectedTemaId, themes) {
+        let themeOptions = '';
+        themes.forEach(theme => {
+            themeOptions += `<option value="${theme.id}"${theme.id === selectedTemaId ? ' selected' : ''}>${theme.tema}</option>`;
+        });
+        return `<select name="temas[]" class="select" required style="margin-top: 5px;">${themeOptions}</select>`;
+    }
+
+
+
+
+
+    function addPergunta(tipoId) {
+        const perguntasContainer = document.getElementById('perguntas-container');
+        const numeroPerguntas = perguntasContainer.children.length;
+        const temaSelect = document.getElementById('tema-template').innerHTML;
+        
+        // Criando o container principal da pergunta
+        let perguntaDiv = document.createElement('div');
+        perguntaDiv.className = 'pergunta-completa';
+        perguntaDiv.style.marginBottom = '20px';
+        
+        
+        // Cabeçalho da pergunta
+        let headerDiv = document.createElement('div');
+        headerDiv.style.display = 'flex';
+        headerDiv.style.justifyContent = 'space-between';
+        headerDiv.style.alignItems = 'center';
+        
+        console.log("tipoID:", tipoId);  // Deve mostrar o ID correspondente
+        let descricaoTipo = idToDescMap[tipoId] || "Tipo Indefinido"; 
+        // Label para o tipo de pergunta
+        let label = document.createElement('label');
+        label.style.fontWeight = 'bold';
+        label.textContent = `Pergunta ${numeroPerguntas + 1}: ${descricaoTipo}`;
+        headerDiv.appendChild(label);
+        
+        
+        
+        // Div para ações (adicionar/remover)
+        let actionsDiv = document.createElement('div');
+        
+        // Adicionando botão de adicionar opção para escolha múltipla
+        if (descricaoTipo === 'escolha múltipla') {
+            let addButton = document.createElement('button');
+            addButton.type = 'button';
+            addButton.onclick = function() { addNewOpcao(this.closest('.pergunta-completa').querySelector('.opcoes-container'), numeroPerguntas); };
+            addButton.className = 'add-option-button button is-small is-link';
+            addButton.style.marginRight = '5px';
+            addButton.textContent = 'Adicionar Opção';
+            actionsDiv.appendChild(addButton);
+        }
+        
+        // Botão para remover pergunta
+        let removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.onclick = function() { removeElement(this.closest('.pergunta-completa'), 'pergunta'); };
+        removeButton.className = 'button is-small is-danger';
+        removeButton.innerHTML = '<span class="icon is-small"><i class="fas fa-trash" style="font-size: 1rem;"></i></span>';
+        actionsDiv.appendChild(removeButton);
+        
+        headerDiv.appendChild(actionsDiv);
+        perguntaDiv.appendChild(headerDiv);
+        
+        // Input para o texto da pergunta
+        let questionInput = document.createElement('input');
+        questionInput.type = 'text';
+        questionInput.name = 'perguntas[]';
+        questionInput.placeholder = 'Digite a pergunta';
+        questionInput.required = true;
+        questionInput.className = 'input';
+        questionInput.style.marginTop = '5px';
+        perguntaDiv.appendChild(questionInput);
+        
+        console.log("Valor de descricaoTipo antes de criar input:", descricaoTipo);
+        let tipoInput = document.createElement('input');
+        tipoInput.type = 'hidden';
+        tipoInput.name = 'tipos_pergunta[]';
+        tipoInput.value = tipoId;  // Atribui o ID baseado na descrição
+        perguntaDiv.appendChild(tipoInput);
+        
+        console.log("Valor de descricaoTipo após criar input:", descricaoTipo);
+        console.log("Valor do input hidden:", tipoInput.value);
+        // Inserção do tema da pergunta
+        let themeLabel = document.createElement('label');
+        themeLabel.style.fontWeight = 'bold';
+        themeLabel.textContent = 'Tema:';
+        perguntaDiv.appendChild(themeLabel);
+
+        let themeSelectDiv = document.createElement('div');
+        themeSelectDiv.innerHTML = temaSelect;
+        perguntaDiv.appendChild(themeSelectDiv);
+
+        // Tratamento específico para perguntas de tipo 'escolha múltipla' e 'escalar'
+        if (descricaoTipo === 'escolha múltipla' || descricaoTipo === 'escalar') {
+            let container = document.createElement('div');
+            container.className = descricaoTipo === 'escolha múltipla' ? 'opcoes-container' : 'escalar-container';
+            container.style.marginTop = '10px';
+
+            if (descricaoTipo === 'escolha múltipla') {
+                for (let i = 1; i <= 2; i++) {
+                    container.innerHTML += getOpcaoHTML(numeroPerguntas, i);
+                }
+            } else{
+                // Campos específicos para perguntas do tipo 'escalar'
+                container.innerHTML = `
+                    <input type="number" name="valor_minimo[${numeroPerguntas}]" placeholder="Valor Mínimo" required class="input" oninput="validateMinMax(this)" style="margin-top: 10px;">
+                    <input type="text" name="significado_minimo[${numeroPerguntas}]" placeholder="Significado do Mínimo" required class="input">
+                    <input type="number" name="valor_maximo[${numeroPerguntas}]" placeholder="Valor Máximo" required class="input" oninput="validateMinMax(this)" style="margin-top: 10px;">
+                    <input type="text" name="significado_maximo[${numeroPerguntas}]" placeholder="Significado do Máximo" required class="input">
+                `;
+            }
+
+            perguntaDiv.appendChild(container);
+        }
+
+        perguntasContainer.appendChild(perguntaDiv);
+        atualizarNumeracaoPerguntas();
+
+        console.log("Tipo de pergunta adicionado ao DOM:", descricaoTipo);
+    }
+
+
+
+
+    
+    function validateMinMax(element) {
+        const minInput = element.name.startsWith('valor_minimo') ? element : element.closest('.escalar-container').querySelector('input[name^="valor_minimo"]');
+        const maxInput = element.name.startsWith('valor_maximo') ? element : element.closest('.escalar-container').querySelector('input[name^="valor_maximo"]');
+
+        const minValue = parseInt(minInput.value, 10);
+        const maxValue = parseInt(maxInput.value, 10);
+
+        if (minValue >= maxValue) {
+            minInput.setCustomValidity('O valor mínimo deve ser menor que o valor máximo.');
+            maxInput.setCustomValidity('O valor máximo deve ser maior que o valor mínimo.');
+        } else {
+            minInput.setCustomValidity('');
+            maxInput.setCustomValidity('');
+        }
+    }
+
+    function validateDate(input) {
+        if (!input.value) {
+            input.setCustomValidity('Por favor, escolha uma data de publicação.');
+            input.reportValidity();
+            return false;
+        } else {
+            input.setCustomValidity('');
+            return true;
+        }
+    }
+
+
+
+    function addPerguntaExistente(pergunta, index, themes) {
+        const perguntasContainer = document.getElementById('perguntas-container');
+        if (!perguntasContainer) {
+            console.error('Container de perguntas não encontrado.');
+            return;
+        }
+
+        let opcoesHTML = '';
+        let escalarHTML = '';
+        let conteudoHTML = '';
+
+        if (pergunta.tipo.descricao === 'escolha múltipla') {
+            opcoesHTML = '<div class="opcoes-container" style="margin-top: 10px;">';
+            pergunta.opcoes.forEach((opcao, opcaoIndex) => {
+                opcoesHTML += getOpcaoHTML(index, opcaoIndex + 1, opcao.texto_opcao, opcao.id);
+            });
+
+            opcoesHTML += '</div>';
+        }
+
+        if (pergunta.tipo.descricao === 'escalar') {
+            escalarHTML = `
+            <div class="escalar-container" style="display: flex; flex-direction: column; width: 100%;">
+                <input type="number" name="valor_minimo[${index}]" value="${pergunta.valor_minimo}" placeholder="Valor Mínimo" required class="input" style="margin-top: 10px;">
+                <input type="text" name="significado_minimo[${index}]" value="${pergunta.significado_minimo}" placeholder="Significado do Mínimo" required class="input">
+                <input type="number" name="valor_maximo[${index}]" value="${pergunta.valor_maximo}" placeholder="Valor Máximo" required class="input" style="margin-top: 10px;">
+                <input type="text" name="significado_maximo[${index}]" value="${pergunta.significado_maximo}" placeholder="Significado do Máximo" required class="input">
+            </div>
+            `;
+        }
+
+        let temaSelect = createThemeSelect(pergunta.tema_id, themes);
+
+        let perguntaHTML = `
+        <div class="pergunta-completa" data-index="${index}" style="margin-bottom: 20px;">
+            <div style="flex-grow: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-weight: bold;">Pergunta ${index + 1}: ${pergunta.tipo.descricao}</label>
+                    <div>
+                        ${pergunta.tipo.descricao === 'escolha múltipla' ? `<button type="button" onclick="addOpcao(this.closest('.pergunta-completa').querySelector('.opcoes-container'), ${index})" class="button is-small is-link" style="margin-right: 5px;">Adicionar Opção</button>` : ''}
+                        <button type="button" onclick="removeElement(this.closest('.pergunta-completa'), 'pergunta')" class="button is-small is-danger" style="height: fit-content;">
+                            <span class="icon is-small"><i class="fas fa-trash" style="font-size: 1rem;"></i></span>
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="perguntas_ids[]" value="${pergunta.id}" />
+                <input type="hidden" name="tipos_pergunta[]" value="${pergunta.tipo.id}" data-tipo-descricao="${pergunta.tipo.descricao}">
+                <input type="text" name="perguntas[]" value="${pergunta.conteudo}" required class="input" style="margin-top: 5px;">
+                <label style="font-weight: bold;">Tema:</label>
+                ${temaSelect}
+            </div>
+            ${opcoesHTML}
+            ${escalarHTML}
+        </div>
+        `;
+
+        perguntasContainer.insertAdjacentHTML('beforeend', perguntaHTML);
+    }
+
+    function addNewOpcao(opcoesContainer, perguntaIndex) {
+        const numeroOpcoes = opcoesContainer.querySelectorAll('.opcao').length + 1;
+        const opcaoHTML = getOpcaoHTML(perguntaIndex, numeroOpcoes, '', null); 
+        opcoesContainer.insertAdjacentHTML('beforeend', opcaoHTML);
+        atualizarNumeracaoOpcoes(opcoesContainer, perguntaIndex);
+        bindOpcaoEvents(opcoesContainer); 
+    }
+
+
+    function getNewOpcaoHTML(perguntaIndex, opcaoIndex) {
+        console.log("(getNewOpcaoHTML) Criando nova opção para pergunta: ", perguntaIndex);
+        return `
+        <div class="opcao" style="display: flex; align-items: center; margin-top: 5px;">
+            <input type="text" name="opcoes_${perguntaIndex}[]" placeholder="Opção ${opcaoIndex}" required class="input">
+            ${opcaoIndex > 2 ? `<button type="button" onclick="removeElement(this.closest('.opcao'), 'opcao')" class="button is-small is-danger" style="margin-left: 10px;">
+                <span class="icon is-small"><i class="fas fa-trash"></i></span>
+            </button>` : ''}
+        </div>
+        `;
+    }
+
+
+
+    function addOpcao(opcoesContainer, perguntaIndex, textoOpcao = '', opcaoId = null) {
+        const numeroOpcoes = opcoesContainer.querySelectorAll('.opcao').length + 1;
+        console.log("Chamando getOpcaoHTML com ID:", opcaoId);
+        const opcaoHTML = getOpcaoHTML(perguntaIndex, numeroOpcoes, textoOpcao, opcaoId);
+        opcoesContainer.insertAdjacentHTML('beforeend', opcaoHTML);
+        atualizarNumeracaoOpcoes(opcoesContainer, perguntaIndex);
+        bindOpcaoEvents(opcoesContainer);
+    }
+
+    document.forms[0].addEventListener('submit', (event) => {
+        console.log("Formulário será enviado com os seguintes dados:");
+        document.querySelectorAll('[name^="opcoes_ids_"]').forEach(input => {
+            console.log(input.name + ": " + input.value);
+        });
+    });
+
+
+
+
+    function getOpcaoHTML(perguntaIndex, opcaoIndex, textoOpcao = '', opcaoId = null) {
+        let inputIdHTML = '';
+        if (opcaoId !== null && Number.isInteger(opcaoId)) {
+            inputIdHTML = `<input type="hidden" name="opcoes_ids_${perguntaIndex}[]" value="${opcaoId}">`;
+        }
+        console.log(`(getOpcaoHTML) ID atribuído a opção para pergunta ${perguntaIndex}, opção ${opcaoIndex}:`, opcaoId, "HTML:", inputIdHTML);
+
+        return `
+        <div class="opcao" style="display: flex; align-items: center; margin-top: 5px;">
+            ${inputIdHTML}
+            <input type="text" name="opcoes_${perguntaIndex}[]" value="${textoOpcao}" placeholder="Opção ${opcaoIndex}" required class="input">
+            ${opcaoIndex > 2 ? `<button type="button" onclick="removeElement(this.closest('.opcao'), 'opcao')" class="button is-small is-danger" style="margin-left: 10px;">
+                <span class="icon is-small"><i class="fas fa-trash"></i></span>
+            </button>` : ''}
+        </div>
+        `;
+    }
+
+
+
+
+
+
+    function removeElement(element, type) {
+        const container = element.closest(type === 'opcao' ? '.opcoes-container' : '#perguntas-container');
+        const items = container.querySelectorAll(type === 'opcao' ? '.opcao' : '.pergunta-completa');
+
+        if (type === 'opcao' && items.length <= 2) {
+            alert('Cada pergunta de escolha múltipla deve ter pelo menos duas opções.');
+            return;
+        }
+
+        if (items.length > 1) {
+            element.remove();
+            if (type === 'opcao') {
+                atualizarNumeracaoOpcoes(container, parseInt(container.dataset.perguntaIndex));
+            } else if (type === 'pergunta') {
+                atualizarNumeracaoPerguntas();
+            }
+        } else {
+            alert(`Você não pode remover todas as ${type === 'opcao' ? 'opções' : 'perguntas'}.`);
+        }
+    }
+
+
+
+
+
+    function bindOpcaoEvents(opcoesContainer) {
+        const removeButtons = opcoesContainer.querySelectorAll('.button.is-small.is-danger');
+        removeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                removeElement(this.parentElement, 'opcao');
+            });
+        });
+    }
+
+
+
+
+
+    function atualizarNumeracaoPerguntas() {
+        const perguntas = document.querySelectorAll('.pergunta-completa');
+        perguntas.forEach((pergunta, index) => {
+            const tipoDescricao = pergunta.querySelector('input[name="tipos_pergunta[]"]').dataset.tipoDescricao;
+            pergunta.querySelector('label').textContent = `Pergunta ${index + 1}: ${tipoDescricao}`;
+            const opcoesContainer = pergunta.querySelector('.opcoes-container');
+            if (opcoesContainer) {
+                atualizarNumeracaoOpcoes(opcoesContainer, index);
+            }
+        });
+    }
+
+    function atualizarNumeracaoOpcoes(perguntaIndex) {
+        const opcoesContainer = document.querySelector(`[data-pergunta-index="${perguntaIndex}"] .opcoes-container`);
+        if (!opcoesContainer) {
+            console.error('Container de opções não encontrado para pergunta:', perguntaIndex);
+            return;
+        }
+
+        const opcoes = opcoesContainer.querySelectorAll('.opcao');
+        opcoes.forEach((opcao, indexOpcao) => {
+            const inputTexto = opcao.querySelector('input[type="text"]');
+            if (inputTexto) {
+                inputTexto.placeholder = `Opção ${indexOpcao + 1}`;
+            }
+        });
+    }
+
+    document.getElementById('add-resposta-curta').addEventListener('click', () => addPergunta(1));
+    document.getElementById('add-resposta-longa').addEventListener('click', () => addPergunta(2));
+    document.getElementById('add-escolha-multipla').addEventListener('click', () => addPergunta(3));
+    document.getElementById('add-escalar').addEventListener('click', () => addPergunta(4));
+    document.getElementById('filtrar-temas').addEventListener('click', filtrarPorTemas);
+
+    function filtrarPorTemas() {
+        const perguntasContainer = document.getElementById('perguntas-container');
+        const perguntas = Array.from(perguntasContainer.children);
+
+        perguntas.sort((a, b) => {
+            const temaA = a.querySelector('select[name="temas[]"]').value;
+            const temaB = b.querySelector('select[name="temas[]"]').value;
+            return temaA.localeCompare(temaB);
+        });
+
+        perguntas.forEach(pergunta => perguntasContainer.appendChild(pergunta));
+        atualizarNumeracaoPerguntas();
+    }
+</script>
+{% endblock %}

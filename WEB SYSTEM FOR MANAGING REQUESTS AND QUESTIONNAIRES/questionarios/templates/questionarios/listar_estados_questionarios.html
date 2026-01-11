@@ -1,0 +1,32 @@
+{% extends 'app.html' %}
+{% load django_tables2 %}
+{% load static %}
+
+{% block title %}- Listar Estados de Questionário{% endblock title %}
+
+{% block content %}
+<div class="columns">
+    <div class="column">
+        <nav aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li class="is-active"><a href="#" aria-current="page">Listagem de Estados de Questionário</a></li>
+            </ul>
+        </nav>
+        <form method="GET" action="{% url 'questionarios:listar-estados-questionarios' %}" class="mb-3">
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input" type="text" name="descricao" placeholder="Filtrar por Estados"
+                        value="{{ request.GET.descricao }}">
+                </div>
+                <div class="control">
+                    <button class="button is-primary" type="submit">Filtrar</button>
+                </div>
+            </div>
+        </form>
+        <a href="{% url 'questionarios:criar-estado-questionario' %}" class="button is-success">Criar Estado</a>
+        <div>&nbsp;</div>
+        {% render_table table %}
+    </div>
+</div>
+{% endblock %}

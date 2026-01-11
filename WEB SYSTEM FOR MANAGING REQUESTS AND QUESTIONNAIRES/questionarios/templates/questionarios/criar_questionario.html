@@ -1,0 +1,255 @@
+{% extends 'app.html' %}
+
+{% load static %}
+
+{% block title %}- Criar Questionario{% endblock title %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <div style="padding: 1rem 2vw 0px;">
+        <hr>
+        <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">
+            Criar Questionario
+        </h2>
+
+        {% if msg %}
+        <div style="margin-left:30%;margin-right:30%; margin-top:0%">
+            <div style="margin-top:2%;text-align: center;position:center;">
+                <article class="message is-danger">
+                    <div class="message-body">
+                        <p style="text-align: center;">
+                            {{erros}}
+                        </p>
+                    </div>
+                </article>
+            </div>
+        </div>
+        {% endif %}
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Assunto: </label>
+                    {{ form.assunto }}
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Descrição: </label>
+                    {{ form.descricao }}
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Ano Letivo: </label>
+                    <div class="control">
+                        {{ form.ano_letivo }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="columns">
+            <div class="column">
+                <div class="field">
+                    <label class="label">Data de Publicação: </label>
+                    <div class="control is-clearfix">
+                        <input name="dia_inicio" value="{{ form.data_submissao.value|default_if_none:'' }}" type="date" 
+                        class="input" oninput="validateDate(this)" required>
+                                     </div>
+                </div>
+            </div>
+        </div>
+
+        <label class="label" style="margin-top:20px;">Perguntas:</label>
+        <div id="perguntas-container"></div>
+
+        <button type="button" id="add-resposta-curta" class="button is-link">Adicionar Resposta Curta</button>
+        <button type="button" id="add-resposta-longa" class="button is-link">Adicionar Resposta Longa</button>
+        <button type="button" id="add-escolha-multipla" class="button is-link">Adicionar Escolha Múltipla</button>
+        <button type="button" id="add-escalar" class="button is-link">Adicionar Escalar</button>
+        <button type="button" id="filtrar-temas" class="button is-info" style="margin-left: auto;">Agrupar por Temas</button>
+    </div>
+
+    <div style="margin-top:8%;text-align:center;position:center;">
+        <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%"
+            onclick="history.back();">Voltar</button>
+        <button type="submit" name="action" value="save_production" class="button is-warning is-outlined"
+            style="margin-right:5%">Guardar</button>
+        <button type="submit" name="action" value="save_created" class="button is-success is-outlined">Submeter para
+            Validação</button>
+    </div>
+</form>
+{% endblock %}
+
+
+{% block scripts %}
+<script type="text/template" id="tema-template">
+    <select name="temas[]" class="select" required style="margin-top: 5px;">
+        {% for tema in temas %}
+        <option value="{{ tema.id }}">{{ tema.tema }}</option>
+        {% endfor %}
+    </select>
+</script>
+
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            const dateIsValid = validateDate(document.querySelector('input[name="dia_inicio"]'));
+            const minMaxIsValid = validateMinMaxValues();
+
+            if (!dateIsValid || !minMaxIsValid) {
+                event.preventDefault();
+            }
+        });
+    })
+    function addPergunta(tipo) {
+        const perguntasContainer = document.getElementById('perguntas-container');
+        const numeroPerguntas = perguntasContainer.children.length;
+        const temaSelect = document.getElementById('tema-template').innerHTML;
+
+        let perguntaHTML = `
+        <div class="pergunta-completa" style="margin-bottom: 20px;">
+            <div style="flex-grow: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-weight: bold;">Pergunta ${numeroPerguntas + 1}: ${tipo}</label>
+                    <div>
+                        ${tipo === 'escolha múltipla' ? `<button type="button" onclick="addOpcao(this.closest('.pergunta-completa').querySelector('.opcoes-container'), ${numeroPerguntas})" class="button is-small is-link" style="margin-right: 5px;">Adicionar Opção</button>` : ''}
+                        <button type="button" onclick="removeElement(this.closest('.pergunta-completa'), 'pergunta')" class="button is-small is-danger" style="height: fit-content;">
+                            <span class="icon is-small"><i class="fas fa-trash" style="font-size: 1rem;"></i></span>
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="tipos_pergunta[]" value="${tipo}">
+                <input type="text" name="perguntas[]" placeholder="Digite a pergunta" required class="input" style="margin-top: 5px;">
+                <label style="font-weight: bold;">Tema:</label>
+                ${temaSelect}
+            </div>
+    `;
+
+        if (tipo === 'escolha múltipla') {
+            perguntaHTML += `<div class="opcoes-container" style="margin-top: 10px;">`;
+            for (let i = 1; i <= 2; i++) {
+                perguntaHTML += getOpcaoHTML(numeroPerguntas, i);
+            }
+            perguntaHTML += `</div>`;
+        } else if (tipo === 'escalar') {
+            perguntaHTML += `
+            <div class="escalar-container" style="display: flex; flex-direction: column; width: 100%;">
+                <input type="number" name="valor_minimo[${numeroPerguntas}]" placeholder="Valor Mínimo" required class="input" oninput="validateMinMax(this)" title="O valor mínimo deve ser menor que o valor máximo." style="margin-top: 10px;">
+                <input type="text" name="significado_minimo[${numeroPerguntas}]" placeholder="Significado do Mínimo" required class="input">
+                <input type="number" name="valor_maximo[${numeroPerguntas}]" placeholder="Valor Máximo" required class="input" oninput="validateMinMax(this)" title="O valor máximo deve ser maior que o valor mínimo." style="margin-top: 10px;">
+                <input type="text" name="significado_maximo[${numeroPerguntas}]" placeholder="Significado do Máximo" required class="input">
+            </div>
+            `;
+        }
+
+
+
+        perguntasContainer.insertAdjacentHTML('beforeend', perguntaHTML);
+        atualizarNumeracaoPerguntas();
+    }
+
+    function validateMinMax(element) {
+        const minInput = element.name.startsWith('valor_minimo') ? element : element.closest('.escalar-container').querySelector('input[name^="valor_minimo"]');
+        const maxInput = element.name.startsWith('valor_maximo') ? element : element.closest('.escalar-container').querySelector('input[name^="valor_maximo"]');
+
+        const minValue = parseInt(minInput.value, 10);
+        const maxValue = parseInt(maxInput.value, 10);
+
+        if (minValue >= maxValue) {
+            minInput.setCustomValidity('O valor mínimo deve ser menor que o valor máximo.');
+            maxInput.setCustomValidity('O valor máximo deve ser maior que o valor mínimo.');
+        } else {
+            minInput.setCustomValidity('');
+            maxInput.setCustomValidity('');
+        }
+    }
+
+    function validateDate(input) {
+        if (!input.value) {
+            input.setCustomValidity('Por favor, escolha uma data de publicação.');
+            input.reportValidity();
+            return false;
+        } else {
+            input.setCustomValidity('');
+            return true;
+        }
+    }
+
+
+    function getOpcaoHTML(perguntaIndex, opcaoIndex) {
+        return `
+        <div class="opcao" style="display: flex; align-items: center; margin-top: 5px;">
+            <input type="text" name="opcoes_${perguntaIndex}[]" placeholder="Opção ${opcaoIndex}" required class="input">
+            ${opcaoIndex > 2 ? `<button type="button" onclick="removeElement(this.closest('.opcao'), 'opcao')" class="button is-small is-danger" style="margin-left: 10px;"><span class="icon is-small"><i class="fas fa-trash" style="font-size: 1rem;"></i></span></button>` : ''}
+        </div>
+    `;
+    }
+
+    function addOpcao(opcoesContainer, perguntaIndex) {
+        const numeroOpcoes = opcoesContainer.querySelectorAll('.opcao').length + 1;
+        const opcaoHTML = getOpcaoHTML(perguntaIndex, numeroOpcoes);
+        opcoesContainer.insertAdjacentHTML('beforeend', opcaoHTML);
+        atualizarNumeracaoOpcoes(opcoesContainer, perguntaIndex);
+    }
+
+    function removeElement(element, type) {
+        element.remove();
+        atualizarNumeracaoPerguntas();
+        if (type === 'opcao') {
+            const perguntas = document.querySelectorAll('.pergunta-completa');
+            perguntas.forEach((pergunta, indexPergunta) => {
+                const opcoesContainer = pergunta.querySelector('.opcoes-container');
+                if (opcoesContainer) {
+                    atualizarNumeracaoOpcoes(opcoesContainer, indexPergunta);
+                }
+            });
+        }
+    }
+
+    function atualizarNumeracaoPerguntas() {
+        const perguntas = document.querySelectorAll('.pergunta-completa');
+        perguntas.forEach((pergunta, index) => {
+            pergunta.querySelector('label').textContent = `Pergunta ${index + 1}: ` + pergunta.querySelector('input[type=hidden]').value;
+            const opcoesContainer = pergunta.querySelector('.opcoes-container');
+            if (opcoesContainer) {
+                atualizarNumeracaoOpcoes(opcoesContainer, index);
+            }
+        });
+    }
+
+    function atualizarNumeracaoOpcoes(opcoesContainer, perguntaIndex) {
+        const opcoes = opcoesContainer.querySelectorAll('.opcao');
+        opcoes.forEach((opcao, indexOpcao) => {
+            opcao.querySelector('input').placeholder = `Opção ${indexOpcao + 1}`;
+            opcao.querySelector('input').name = `opcoes_${perguntaIndex}[]`;
+        });
+    }
+
+    document.getElementById('add-resposta-curta').addEventListener('click', () => addPergunta('resposta curta'));
+    document.getElementById('add-resposta-longa').addEventListener('click', () => addPergunta('resposta longa'));
+    document.getElementById('add-escolha-multipla').addEventListener('click', () => addPergunta('escolha múltipla'));
+    document.getElementById('add-escalar').addEventListener('click', () => addPergunta('escalar'));
+    document.getElementById('filtrar-temas').addEventListener('click', filtrarPorTemas);
+
+    function filtrarPorTemas() {
+        const perguntasContainer = document.getElementById('perguntas-container');
+        const perguntas = Array.from(perguntasContainer.children);
+
+        perguntas.sort((a, b) => {
+            const temaA = a.querySelector('select[name="temas[]"]').value;
+            const temaB = b.querySelector('select[name="temas[]"]').value;
+            return temaA.localeCompare(temaB);
+        });
+
+        perguntas.forEach(pergunta => perguntasContainer.appendChild(pergunta));
+        atualizarNumeracaoPerguntas();
+    }
+</script>
+    
+{% endblock %}

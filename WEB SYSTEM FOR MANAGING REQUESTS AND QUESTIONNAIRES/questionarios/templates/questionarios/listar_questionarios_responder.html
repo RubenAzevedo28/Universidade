@@ -1,0 +1,24 @@
+{% extends 'app.html' %}
+{% load django_tables2 %}
+{% load static %}
+
+{% block title %}- Questionários por Responder{% endblock title %}
+
+{% block content %}
+<div class="columns">
+    <div class="column">
+        <nav aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li class="is-active"><a href="#" aria-current="page">Questionários por Responder</a></li>
+            </ul>
+        </nav>
+        <div>&nbsp;</div>
+        {% if tem_questionarios %}
+            {% render_table table %}
+        {% else %}
+            <p>Não há questionários disponíveis para responder no momento.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

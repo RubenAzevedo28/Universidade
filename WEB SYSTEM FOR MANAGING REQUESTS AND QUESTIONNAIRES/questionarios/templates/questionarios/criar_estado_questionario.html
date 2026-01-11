@@ -1,0 +1,32 @@
+{% extends 'app.html' %}
+
+{% load static %}
+
+{% block title %}Criar Estado de Questionário{% endblock title %}
+
+{% block content %}
+<div style="padding: 1rem 2vw;">
+    <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">Criar Estado de Questionário</h2>
+    <form action="{% url 'questionarios:criar-estado-questionario' %}" method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label class="label">Estado:</label>
+            <div class="control">
+                <input class="input" type="text" name="estado" placeholder="Digite o estado" required>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Descrição:</label>
+            <div class="control">
+                <textarea class="textarea" name="descricao" placeholder="Descreva o estado" required></textarea>
+            </div>
+        </div>
+
+        <div style="margin-top:8%;text-align:center;position:center;">
+            <button type="submit" class="button is-success">Criar Estado</button>
+            <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%"
+                onclick="history.back();">Voltar</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

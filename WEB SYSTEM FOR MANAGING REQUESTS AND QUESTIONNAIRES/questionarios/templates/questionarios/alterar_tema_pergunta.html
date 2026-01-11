@@ -1,0 +1,28 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div style="padding: 1rem 2vw;">
+    <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">Alterar Tema de Pergunta</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label class="label">Tema:</label>
+            <div class="control">
+                <input class="input" type="text" name="tema" value="{{ tema.tema }}" required>
+            </div>
+        </div>
+        <div class="field">
+            <label class="label">Descrição:</label>
+            <div class="control">
+                <textarea class="textarea" name="descricao" required>{{ tema.descricao }}</textarea>
+            </div>
+        </div>
+
+        <div style="margin-top:8%;text-align:center;position:center;">
+            <button type="submit" class="button is-link">Salvar Alterações</button>
+            <button type="button" value="Voltar" class="button is-outlined" style="margin-right:5%"
+                onclick="history.back();">Voltar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

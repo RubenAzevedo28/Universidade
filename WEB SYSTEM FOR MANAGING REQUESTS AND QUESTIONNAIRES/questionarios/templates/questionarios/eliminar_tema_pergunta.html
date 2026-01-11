@@ -1,0 +1,18 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div style="padding: 1rem 2vw;">
+    <h2 class="title has-text-grey is-uppercase" style="font-size: 2.0rem;">Eliminar Tema de Pergunta</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p>Tem a certeza que deseja eliminar o tema <strong>"{{ tema.tema }}"</strong>?</p>
+        <p style="margin-top: 1rem;"><strong>Descrição: </strong>{{ tema.descricao }}</p>
+
+        <div style="margin-top:8%;text-align:center;position:center;">
+            <button type="submit" class="button is-danger">Eliminar</button>
+            <button type="button" class="button is-outlined" style="margin-left: 10px;"
+                onclick="window.history.back();">Cancelar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

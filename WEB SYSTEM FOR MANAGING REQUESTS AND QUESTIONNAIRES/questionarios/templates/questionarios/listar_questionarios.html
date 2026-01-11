@@ -1,0 +1,99 @@
+{% extends 'app.html' %}
+{% load django_tables2 %}
+{% load static %}
+
+{% block title %}- Listar Questionários{% endblock title %}
+
+{% block content %}
+<div class="columns">
+
+    <div class="column is-3">
+        <div>
+            &nbsp;
+        </div>
+        <div class="menu">
+            <div class="menu-label">
+                Filtros Questionários:
+            </div>
+        </div>
+        <div>
+            &nbsp;
+        </div>
+        <form method="get">
+            <ul class="menu-list">
+                <div class="field">
+                    <label><b>Ano Letivo:</b></label>
+                </div>
+                <ul>
+                    {% for value, label in filter.form.fields.anoletivoid.choices %}
+                    <div class="field" style="padding-left: 1rem;">
+                        <label class="checkbox">
+                            <input type="checkbox" name="{{ filter.form.anoletivoid.name }}"
+                                value="{{ value|stringformat:'s' }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </ul>
+                <div>
+                    &nbsp;
+                    &nbsp;
+                </div>
+                <div class="field">
+                    <label><b>Estado:</b></label>
+                </div>
+                <ul>
+                    {% for value, label in filter.form.fields.estado.choices %}
+                    <div class="field" style="padding-left: 1rem;">
+                        <label class="checkbox">
+                            <input type="checkbox" name="{{ filter.form.estado.name }}"
+                                value="{{ value|stringformat:'s' }}">
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </ul>
+                <div>
+                    &nbsp;
+                    &nbsp;
+                </div>
+            </ul>
+            <div class="field is-grouped">
+                <p class="control is-expanded">
+                    <input class="button is-light is-fullwidth" type="reset" value="Limpar">
+                </p>
+                <p class="control is-expanded">
+                    <button class="button is-primary is-fullwidth" type="submit">
+                        <span class="icon">
+                            <i class="mdi mdi-magnify"></i>
+                        </span>
+                        <span>Pesquisar</span>
+                    </button>
+                </p>
+            </div>
+            <div class="field is-grouped" style="margin-top: 20px;">
+                <p class="control is-expanded">
+                    <a href="{% url 'questionarios:exportar-todos-pdf' %}" class="button is-danger is-fullwidth">
+                        Exportar Todos (PDF)
+                    </a>
+                </p>
+            </div>
+        </form>
+    </div>
+    <div class="column">
+        <nav aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+                <li><a href="/">Início</a></li>
+                <li class="is-active"><a href="#" aria-current="page">Listagem de Questionários</a></li>
+            </ul>
+        </nav>
+        <a href="{% url 'questionarios:criar-questionario' %}" class="button is-success">Criar Questionário</a>
+        <div>&nbsp;</div>
+        {% render_table table %}
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+
+{% endblock %}

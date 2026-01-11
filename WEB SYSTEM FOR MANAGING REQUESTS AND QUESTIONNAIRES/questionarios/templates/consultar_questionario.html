@@ -1,0 +1,145 @@
+{% extends 'app.html' %}
+{% load static %}
+{% block title %}- Consultar Questionários
+{% endblock title %}
+{% block content %}
+<div style="padding: 1rem 2vw 0px">
+  <hr />
+  <h2 class="title has-text-grey is-uppercase" style="font-size: 2rem">Consulta de Questionário:</h2>
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label">Estado: </label>
+        <div class="control is-clearfix">{{questionario.estado.estado}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label">Assunto: </label>
+        <div class="control is-clearfix">{{questionario.assunto}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label">Descrição: </label>
+        <div class="control is-clearfix">{{questionario.descricao}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label">Data de Criação: </label>
+        <div class="control is-clearfix">{{questionario.data_criacao}}</div>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="field">
+        <label class="label">Anos Letivos: </label>
+        <div class="control is-clearfix">
+          {% for ano_letivo in anos_letivos %}
+          <li>{{ ano_letivo.ano_letivo }}</li>
+          {% empty %}
+          <li>Não está associado com nenhum ano letivo.</li>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column">
+      <div class="box">
+        <h3 class="title is-4">Perguntas:</h3>
+        {% for tema, perguntas in perguntas_por_tema.items %}
+        <div class="box">
+            <h4 class="title is-5">Tema: {{ tema }}</h4>
+            {% for pergunta in perguntas %}
+            <div class="field">
+                <label class="label">{{ forloop.counter }}. {{ pergunta.conteudo }}</label>
+                <div class="control">
+                    {% if pergunta.tipo_pergunta.descricao == "resposta curta" %}
+                    <input type="text" class="input" placeholder="Digite sua resposta aqui..." disabled>
+                    {% elif pergunta.tipo_pergunta.descricao == "resposta longa" %}
+                    <textarea class="textarea" placeholder="Digite sua resposta detalhada aqui..." disabled></textarea>
+                    {% elif pergunta.tipo_pergunta.descricao == "escolha múltipla" %}
+                    {% for opcao in pergunta.opcoes.all %}
+                    <label class="radio">
+                        <input type="radio" name="resposta_{{ pergunta.id }}" value="{{ opcao.texto_opcao }}" disabled>
+                        {{ opcao.texto_opcao }}
+                    </label>
+                    {% endfor %}
+                    {% elif pergunta.tipo_pergunta.descricao == "escalar" %}
+                    <div>
+                        {{ pergunta.significado_minimo }} ({{ pergunta.valor_minimo }})
+                        {% for num in pergunta.escala_numeros %}
+                        <button type="button" class="button is-small is-rounded" disabled>{{ num }}</button>
+                        {% endfor %}
+                        {{ pergunta.significado_maximo }} ({{ pergunta.valor_maximo }})
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+      </div>  
+    </div>
+  </div>
+</div>
+
+<div>&nbsp;</div>
+{% if questionario.estado.id == 4 %}
+<div class="columns">
+  <div class="column">
+    <div class="field">
+      <label class="label">Comentários:</label>
+      <div class="control is-clearfix">
+        <textarea
+          id="comentarios"
+          name="comentarios"
+          style="
+            font-size: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+            min-height: 10rem;
+          "
+          disabled
+        >
+{{ questionario.comentarios }}</textarea
+        >
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+<div style="margin-top: 8%; text-align: center; position: center">
+  <button type="button" value="Voltar" class="button is-outlined" style="margin-right: 5%" onclick="history.back();">
+    Voltar
+  </button>
+</div>
+
+{% endblock content %} {% block scripts %}
+<script>
+  var app = new Vue({
+    delimiters: ["[[", "]]"],
+    el: "#app",
+    data() {
+      return {
+        // Any dynamic data goes here
+      };
+    },
+    methods: {
+      // Any methods to manipulate data goes here
+    },
+  });
+</script>
+
+{% endblock scripts %}
