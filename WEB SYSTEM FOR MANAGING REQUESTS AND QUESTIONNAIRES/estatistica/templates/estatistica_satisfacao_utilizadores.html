@@ -1,0 +1,204 @@
+{% extends 'app.html' %} 
+{% load static %}
+
+{% block title %}- Estatistica{% endblock title %}
+
+{% block content %}
+<div id="satifacao-utilizadores">
+  <h2 class="title has-text-grey is-uppercase" style="font-size: 2rem">Estatistica sobre Satisfação dos utilizadores</h2>
+  <div class="columns">
+    <div class="column is-3">
+      <div class="menu">
+        <div class="menu-label">
+            Filtros de Estatística:
+        </div>
+        <div>
+          &nbsp;
+        </div>
+        <form method="get">
+          <ul class="menu-list">
+            <div class="field">
+              <label><b>Ano Letivo:</b></label>
+            </div>
+            <ul>
+              {% for value, label in filter.form.fields.ano_letivo.choices %}
+              <div class="field" style="padding-left: 1rem;">
+                <label class="checkbox">
+                  <input type="checkbox" name="{{ filter.form.ano_letivo.name }}"
+                    value="{{ value|stringformat:'s' }}">
+                  {{ label }}
+                </label>
+              </div>
+              {% endfor %}
+            </ul>
+            <div>
+              &nbsp;
+              &nbsp;
+            </div>
+            <li>
+              <div>
+                <div class="field">
+                  <label><b>Tipo de Pergunta:</b></label>
+                </div>
+                <ul>
+                  {% for value, label in filter.form.fields.tipo_pergunta.choices %}
+                      <div class="field" style="padding-left: 1rem;">
+                          <label class="checkbox">
+                              <input type="checkbox" name="{{ filter.form.tipo_pergunta.name }}"
+                                  value="{{ value|stringformat:'s' }}">
+                              {{ label }}
+                          </label>
+                      </div>
+                  {% endfor %}
+              </ul>
+              <div>
+                  &nbsp;
+                  &nbsp;
+              </div>
+            </li>
+          </ul>
+          <div class="field is-grouped">
+            <p class="control is-expanded">
+              <input class="button is-light is-fullwidth" type="reset" value="Limpar">
+            </p>
+            <p class="control is-expanded">
+              <button class="button is-primary is-fullwidth" type="submit">
+                <span class="icon">
+                  <i class="mdi mdi-magnify"></i>
+                </span>
+                <span>Pesquisar</span>
+              </button>
+            </p>
+          </div>
+        </form>
+        <button id="export-pdf" class="button is-fullwidth">Export as PDF</button>
+      </div>
+    </div>
+    <div class="column">
+      <nav aria-label="breadcrumbs" class="breadcrumb">
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="{% url 'estatisticas:estatistica' %}">Consultar a Estatística</a></li>
+          <li class="is-active"><a>Consultar Estatistica sobre Satisfação</a></li>
+        </ul>
+      </nav>
+      <div class="column" style="width: 700px; margin: auto">
+        {% for chartdata in chartdata_list %}
+        <h2 style="text-align: center; cursor: pointer; font-weight: 600">
+          {{ chartdata.question }}
+        </h2>
+        <canvas id="pieChart-{{ forloop.counter }}"></canvas>
+        <h2 style="text-align: center; cursor: pointer">
+          Número Total de Respostas: {{ chartdata.total_response }}
+        </h2>
+
+        <br />
+        <br />
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {{ labels|json_script:"labels" }} {{ data_points|json_script:"data_points" }}
+</div>
+
+{% endblock content %} 
+{% block styles %}
+<style>
+  .chart-container {
+    width: 400px; /* or any other dimensions */
+    height: 400px; /* height should be the same to keep the aspect ratio */
+  }
+  canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+</style>
+{% endblock %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.3/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js"></script>
+
+<script>
+            document.addEventListener("DOMContentLoaded", function () {
+                {% for chartdata in chartdata_list %}
+                var ctx = document.getElementById('pieChart-{{ forloop.counter }}').getContext('2d');
+                var xData = JSON.parse('{{ chartdata.x|safe }}');
+                var yData = JSON.parse('{{ chartdata.y1|safe }}');
+
+
+                var chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: xData,
+                        datasets: [{
+                            label: '{{ chartdata.question|safe }}',
+                            backgroundColor: [
+                                'rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)',
+                                'rgb(75, 192, 192)', 'rgb(153, 102, 255)', 'rgb(255, 159, 64)',
+                                'rgb(199, 199, 199)', 'rgb(83, 102, 255)', 'rgb(40, 159, 44)',
+                                'rgb(145, 30, 180)'
+                            ],
+                            borderColor: 'rgb(255, 255, 255)',
+                            data: yData
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                          var percentage = (tooltipItem.raw / JSON.parse('{{ chartdata.total_response|safe }}') * 100); // Calculate percentage
+                                          return tooltipItem.label + ': ' + tooltipItem.raw + ' ('+ percentage + '%)'; // Include the percentage in the tooltip
+                                      }
+                                }
+                            }
+                        }
+                    }
+                });
+                {% endfor %}
+            });
+
+  document.getElementById('export-pdf').addEventListener('click', function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let promises = [];
+
+      document.querySelectorAll('canvas').forEach(function(canvas, index) {
+          let promise = html2canvas(canvas, { scale: 2 }).then(canvasImage => {
+              const imgData = canvasImage.toDataURL('image/png');
+              const imgProps = doc.getImageProperties(imgData);
+              const pdfWidth = doc.internal.pageSize.getWidth();
+              const imgHeight = ((imgProps.height * pdfWidth) / imgProps.width);
+
+              if (index > 0) doc.addPage();
+              doc.addImage(imgData, 'PNG', 0, 30, pdfWidth, imgHeight);
+
+              // More robustly find the associated question and total responses
+              let questionTitleElement = canvas.previousElementSibling;
+              while (questionTitleElement && questionTitleElement.tagName !== 'H2') {
+                  questionTitleElement = questionTitleElement.previousElementSibling;
+              }
+              let totalResponsesElement = canvas.nextElementSibling;
+              while (totalResponsesElement && totalResponsesElement.tagName !== 'H2') {
+                  totalResponsesElement = totalResponsesElement.nextElementSibling;
+              }
+
+              let questionTitle = questionTitleElement ? questionTitleElement.textContent : 'Question not found';
+              let totalResponses = totalResponsesElement ? totalResponsesElement.textContent : 'Total responses not found';
+
+              doc.setFontSize(16);
+              doc.text(questionTitle, 10, 20);
+
+              doc.setFontSize(12);
+              doc.text(totalResponses, 10, imgHeight + 30);
+          });
+          promises.push(promise);
+      });
+
+      Promise.all(promises).then(() => {
+          doc.save('estatistica_eficiencia.pdf');
+      });
+  });
+</script>
+{% endblock %}

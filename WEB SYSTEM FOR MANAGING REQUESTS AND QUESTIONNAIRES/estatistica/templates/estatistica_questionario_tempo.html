@@ -1,0 +1,97 @@
+{% extends 'app.html' %} {% load static %} {% block title %}- Estatistica{% endblock title %} {% block content %}
+<div id="tempo-medio">
+  <h2 class="title has-text-grey is-uppercase" style="font-size: 2rem">Estados de Questionários</h2>
+  <div class="columns">
+    <div class="column">
+      <nav aria-label="breadcrumbs" class="breadcrumb">
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="{% url 'estatisticas:estatistica' %}">Consultar a Estatística</a></li>
+          <li class="is-active"><a>Intervalo de tempo entre Submissão e Validade de Questionários em Dias</a></li>
+        </ul>
+      </nav>
+      <div>
+        <div id="average_durations_by_tema_json" style="display:none;">{{ average_durations_by_tema_json }}</div>
+
+        <canvas id="estadoChart" width="900" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var averageDurationsByTema = JSON.parse(document.getElementById("average_durations_by_tema_json").textContent);
+    
+    // Extracting labels and data points from the JSON data
+    var labels = averageDurationsByTema.map(item => item.tema__titulo);
+    // var dataPoints = averageDurationsByTema.map(item => item.average_duration);
+    var dataPoints = averageDurationsByTema.map(item => item.average_duration);
+
+    console.log(dataPoints)  
+    function generateColor(index) {
+      const colors = [
+        "rgba(255, 99, 132, 0.2)",
+        "rgba(54, 162, 235, 0.2)",
+        "rgba(255, 206, 86, 0.2)",
+        "rgba(75, 192, 192, 0.2)",
+        "rgba(153, 102, 255, 0.2)",
+        "rgba(65, 255, 64, 0.2)",
+      ];
+      const borderColors = [
+        "rgba(255, 99, 132, 1)",
+        "rgba(54, 162, 235, 1)",
+        "rgba(255, 206, 86, 1)",
+        "rgba(75, 192, 192, 1)",
+        "rgba(153, 102, 255, 1)",
+        "rgba(65, 255, 64, 1)",
+      ];
+  
+      return { backgroundColor: colors[index % colors.length], borderColor: borderColors[index % colors.length] };
+    }
+  
+    var ctx = document.getElementById("estadoChart").getContext("2d");
+    var myChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Intervalo de tempo entre Submissão e Validade de Questionários em Dias"], // This will be the common label for the X axis if you want to group all bars under a single category
+        datasets: labels.map((label, index) => ({
+          label: label,
+          data: [dataPoints[index]],
+          ...generateColor(index),
+          borderWidth: 1,
+          hidden: dataPoints[index] === 0 ? true : false, // Hide the dataset if the data point is 0
+        })),
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "top",
+            onClick: function (e, legendItem, legend) {
+              const index = legendItem.datasetIndex;
+              const chart = legend.chart;
+              chart.getDatasetMeta(index).hidden = chart.isDatasetVisible(index) ? true : null;
+              chart.update();
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              callback: function (value) {
+                if (value % 1 === 0) {
+                  return value;
+                }
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+  </script>
+{% endblock scripts %}

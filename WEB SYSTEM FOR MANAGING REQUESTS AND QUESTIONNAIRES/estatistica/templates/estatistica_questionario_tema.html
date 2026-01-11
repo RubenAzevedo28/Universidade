@@ -1,0 +1,106 @@
+{% extends 'app.html' %} {% load static %} {% block title %}- Estatistica{% endblock title %} {% block content %}
+<div id="tempo-medio">
+  <h2 class="title has-text-grey is-uppercase" style="font-size: 2rem">Estados de Questionários</h2>
+  <div class="columns">
+    <div class="column">
+      <nav aria-label="breadcrumbs" class="breadcrumb">
+        <ul>
+          <li><a href="/">Início</a></li>
+          <li><a href="{% url 'estatisticas:estatistica' %}">Consultar a Estatística</a></li>
+          <li class="is-active"><a>Consultar tema de Questionários</a></li>
+        </ul>
+      </nav>
+      <div>
+        <canvas id="estadoChart" width="900" height="300"></canvas>
+      </div>
+    </div>
+  </div>
+
+  {{ labels|json_script:"labels" }} {{ data_points|json_script:"data_points" }}
+</div>
+
+{% endblock content %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  var ctx = document.getElementById("estadoChart").getContext("2d");
+  var labels = JSON.parse(document.getElementById("labels").textContent);
+  var dataPoints = JSON.parse(document.getElementById("data_points").textContent);
+
+  function generateColor(index) {
+    const colors = [
+      "rgba(255, 99, 132, 0.2)",
+      "rgba(54, 162, 235, 0.2)",
+      "rgba(255, 206, 86, 0.2)",
+      "rgba(75, 192, 192, 0.2)",
+      "rgba(153, 102, 255, 0.2)",
+      "rgba(65, 255, 64, 0.2)",
+    ];
+    const borderColors = [
+      "rgba(255, 99, 132, 1)",
+      "rgba(54, 162, 235, 1)",
+      "rgba(255, 206, 86, 1)",
+      "rgba(75, 192, 192, 1)",
+      "rgba(153, 102, 255, 1)",
+      "rgba(65, 255, 64, 1)",
+    ];
+
+
+    return { backgroundColor: colors[index % colors.length], borderColor: borderColors[index % colors.length] };
+  }
+
+  var datasets = labels.map((label, index) => ({
+    label: label,
+    data: [dataPoints[index]],
+    ...generateColor(index),
+    borderWidth: 1,
+  }));
+
+  document.addEventListener("DOMContentLoaded", function () {
+    var ctx = document.getElementById("estadoChart").getContext("2d");
+
+    var myChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: ["Número de Questionários"], // Common label for the X axis
+        datasets: labels.map((label, index) => ({
+          label: label,
+          data: [dataPoints[index]],
+          backgroundColor: generateColor(index).backgroundColor,
+          borderColor: generateColor(index).borderColor,
+          borderWidth: 1,
+          hidden: dataPoints[index] === 0 ? true : false, // Set hidden based on data
+        })),
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "top",
+            onClick: function (e, legendItem, legend) {
+              const index = legendItem.datasetIndex;
+              const chart = legend.chart;
+              // Toggling the visibility
+              chart.getDatasetMeta(index).hidden = chart.isDatasetVisible(index) ? true : null;
+              chart.update();
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              // Ensure ticks are integers only
+              stepSize: 1,
+              callback: function (value) {
+                if (value % 1 === 0) {
+                  return value;
+                }
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+</script>
+
+{% endblock scripts %}
