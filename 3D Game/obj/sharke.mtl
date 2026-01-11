@@ -1,0 +1,12 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl 10046_Shark_v1
+Ns 26.000004
+Ka 1.000000 1.000000 1.000000
+Ks 0.243000 0.243000 0.243000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd D:/ruben/Downloads/10046_Shark_v1_L3.123c53908ef3-d441-466f-bf7f-f00134e397ec/10046_Shark_v1_L3.123c53908ef3-d441-466f-bf7f-f00134e397ec/10046_Shark_v1_Diffuse.jpg
