@@ -27,7 +27,6 @@ Sem poder parar, o surfista tem de manter o equilíbrio, mudar de faixa rapidame
 | **D** | Mover para a direita |
 | **R** | Reiniciar o jogo |
 | **P** | Iniciar / pausar o movimento |
-| **Mouse** | Clicar em **Jogar** no ecrã inicial |
 
 ## ⭐ Pontuação
 
