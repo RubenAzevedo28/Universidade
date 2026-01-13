@@ -68,6 +68,6 @@ Sem poder parar, o surfista tem de manter o equilíbrio, mudar de faixa rapidame
 
 ## 👥 Autor
 
-Projeto desenvolvido no âmbito de um **projeto académico em grupo**, inspirado no jogo **Subway Surfers**.
+**Rúben Azevedo**
 
-Rúben Azevedo
+Projeto desenvolvido no âmbito de um **projeto académico em grupo**, inspirado no jogo **Subway Surfers**.
