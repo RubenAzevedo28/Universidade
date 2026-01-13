@@ -1,8 +1,8 @@
-# 🏄‍♂️ Shark Surfer
+# 🏄‍♂️ Surf Escape
 
 ## 🎮 Descrição do Jogo
 
-**Shark Surfer** é um jogo 3D inspirado no clássico **Subway Surfers**, onde o jogador controla um surfista que foge constantemente de um **tubarão** no oceano.
+**Surf Escape** é um jogo 3D inspirado no clássico **Subway Surfers**, onde o jogador controla um surfista que foge constantemente de um **tubarão** no oceano.
 
 O objetivo é **sobreviver o máximo de tempo possível**, desviando-se de **barcos** que surgem no caminho e **apanhando bolas de voleibol** para ganhar pontos extra.
 
