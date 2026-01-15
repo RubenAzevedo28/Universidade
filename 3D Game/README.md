@@ -23,10 +23,10 @@ Sem poder parar, o surfista tem de manter o equilíbrio, mudar de faixa rapidame
 
 | Tecla | Ação |
 |------|------|
-| **A** | Mover para a esquerda |
-| **D** | Mover para a direita |
-| **R** | Reiniciar o jogo |
-| **P** | Iniciar / pausar o movimento |
+| `A` | Mover para a esquerda |
+| `D` | Mover para a direita |
+| `R` | Reiniciar o jogo |
+| `P` | Iniciar / pausar o movimento |
 
 ## ⭐ Pontuação
 
@@ -61,7 +61,7 @@ Sem poder parar, o surfista tem de manter o equilíbrio, mudar de faixa rapidame
 - **Python**
 - **Pygame**
 - **OpenGL (Engine própria)**
-- **Shaders (GLSL)**
+- **Shaders**
 - Modelos 3D (`.obj`)
 - Texturas e áudio
 
