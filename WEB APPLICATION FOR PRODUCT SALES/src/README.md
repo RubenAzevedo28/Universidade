@@ -5,7 +5,7 @@ Este projeto consiste numa **aplicação web desenvolvida em Vue.js**, desenvolv
 ## 📌 Descrição
 Esta aplicação implementa uma interface web com várias páginas (views), gestão de estado global e navegação entre rotas. Inclui funcionalidades como autenticação de utilizadores, gestão de produtos, carrinho de compras e encomendas.
 
-O projeto foi desenvolvido com **Vue.js**, utilizando **Vue Router** para navegação e **Vuex** para gestão de estado. 💚
+O projeto foi desenvolvido com **Vue.js**, utilizando **Vue Router** para navegação e **Vuex** para gestão de estado.
 
 ## 🛠️ Tecnologias Utilizadas
 - ⚡ **Vue.js**
