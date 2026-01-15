@@ -1,6 +1,6 @@
 # 🤖 Inteligência Artificial (IA)
 
-Esta pasta contém projetos desenvolvidos no âmbito da unidade curricular de **Inteligência Artificial (IA)** no ano letivo de **2024/2025**, abordando diferentes conceitos, técnicas e implementações práticas.
+Esta pasta contém projetos desenvolvidos no âmbito da unidade curricular de **Inteligência Artificial (IA)** da **Universidade do Algarve** no ano letivo de **2024/2025**, abordando diferentes conceitos, técnicas e implementações práticas.
 
 Cada subpasta corresponde a um projeto independente.
 
