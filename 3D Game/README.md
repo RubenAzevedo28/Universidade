@@ -2,7 +2,7 @@
 
 ## 🎮 Descrição do Jogo
 
-**Surf Escape** é um jogo 3D inspirado no clássico **Subway Surfers**, onde o jogador controla um surfista que foge constantemente de um **tubarão** no oceano,desenvolvido no âmbito da unidade curricular de **Computação Gráfica (CG)** da **Universidade do Algarve** no ano letivo de **2023/2024**.
+**Surf Escape** é um jogo 3D inspirado no clássico **Subway Surfers**, onde o jogador controla um surfista que foge constantemente de um **tubarão** no oceano,desenvolvido no âmbito da unidade curricular de **Computação Gráfica (CG)** da **Universidade do Algarve**.
 
 O objetivo é **sobreviver o máximo de tempo possível**, desviando-se de **barcos** que surgem no caminho e **apanhando bolas de voleibol** para ganhar pontos extra.
 
