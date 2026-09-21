@@ -2,7 +2,7 @@
 
 ## 📝 Descrição do Projeto
 
-Este projeto consiste numa reinterpretação do clássico **Space Invaders**, desenvolvido no âmbito da unidade curricular de **Programação Orientada por Objetos (POO)** da **Universidade do Algarve** no ano letivo de **2024/2025**.
+Este projeto consiste numa reinterpretação do clássico **Space Invaders**, desenvolvido no âmbito da unidade curricular de **Programação Orientada por Objetos (POO)** da **Universidade do Algarve**.
 
 O jogo foi implementado em **Java**, utilizando **Swing/AWT** para a interface gráfica, e assenta numa **arquitetura modular e orientada a objetos**, com separação clara entre lógica de jogo, rendering, deteção de colisões, input e gestão de níveis.
 
