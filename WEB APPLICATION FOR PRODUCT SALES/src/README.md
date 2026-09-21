@@ -1,6 +1,6 @@
 # 🛒 Aplicação Web em Vue.js
 
-Este projeto consiste numa **aplicação web desenvolvida em Vue.js**, desenvolvida no âmbito da unidade curricular de **Interface Pessoa Náquina (IPM)** da **Universidade do Algarve** no ano letivo de **2022/2023**.
+Este projeto consiste numa **aplicação web desenvolvida em Vue.js**, desenvolvida no âmbito da unidade curricular de **Interface Pessoa Náquina (IPM)** da **Universidade do Algarve**.
 
 ## 📌 Descrição
 Esta aplicação implementa uma interface web com várias páginas (views), gestão de estado global e navegação entre rotas. Inclui funcionalidades como autenticação de utilizadores, gestão de produtos, carrinho de compras e encomendas.
